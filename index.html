@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#142e29" />
+    <title>Dino Rush 3D</title>
+    <script type="module" crossorigin src="./index-C_3XY9bK.js"></script>
+    <link rel="stylesheet" crossorigin href="./index-CNBYNSt8.css">
+  </head>
+  <body>
+    <aside id="startup" role="status" style="position:fixed;inset:0;z-index:9999;display:grid;place-content:center;padding:24px;background:#142e29;color:#fff;font:16px/1.6 system-ui;text-align:center">
+      <h1>Dino Rush 3D</h1>
+      <p id="startup-message">Loading the trail… / ක්‍රීඩාව පූරණය වෙමින්…</p>
+      <p id="startup-help" hidden>Try opening this in Chrome or another browser with WebGL 2 support.</p>
+      <button id="startup-retry" hidden style="padding:16px;border-radius:12px;cursor:pointer">Retry with Low graphics / අඩු රූප සැකසුම්</button>
+      <noscript>Enable JavaScript to play this game.</noscript>
+    </aside>
+    <script>
+      (() => {
+        if (location.protocol === 'file:' && !location.pathname.endsWith('Run-Dev.html')) {
+          location.replace('./Run-Dev.html');
+          return;
+        }
+        const panel = document.getElementById('startup');
+        const message = document.getElementById('startup-message');
+        const retry = document.getElementById('startup-retry');
+        const help = document.getElementById('startup-help');
+        let failed = false;
+        function fail(reason) {
+          failed = true;
+          panel.style.display = 'grid';
+          message.textContent = 'The game could not start / ක්‍රීඩාව ආරම්භ කළ නොහැක. ' + reason;
+          retry.hidden = help.hidden = false;
+          clearTimeout(timer);
+        }
+        const timer = setTimeout(() => fail('Loading is taking longer than expected. Check your connection, then retry.'), 30000);
+        window.addEventListener('error', e => fail(e.message || 'A required game file could not load.'), true);
+        window.addEventListener('unhandledrejection', e => fail(String(e.reason?.message || e.reason || 'Unexpected startup error.')));
+        window.addEventListener('dino:ready', () => {
+          clearTimeout(timer);
+          if (!failed) panel.style.display = 'none';
+        }, {once:true});
+        retry.addEventListener('click', () => {
+          try {
+            let saved;
+            try { saved = JSON.parse(localStorage.getItem('dino-settings') || '{}'); } catch { saved = {}; }
+            localStorage.setItem('dino-settings', JSON.stringify({...saved, quality:'low'}));
+          } catch {}
+          location.reload();
+        });
+        window.addEventListener('DOMContentLoaded', () => {
+          document.getElementById('world').addEventListener('webglcontextlost', e => {
+            e.preventDefault();
+            fail('The browser lost its 3D graphics connection. Retry with Low graphics.');
+          });
+        });
+      })();
+    </script>
+    <canvas id="world" aria-label="3D dinosaur runner"></canvas>
+    <div id="ui"></div>
+  </body>
+</html>
